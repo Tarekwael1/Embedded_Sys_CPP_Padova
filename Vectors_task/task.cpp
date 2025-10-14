@@ -4,32 +4,11 @@
 #include <map>
 #include <algorithm>
 
+#include "Helper_Functions.h"
 
 using namespace std;
+using namespace PST;
 
-
-auto find_first(auto a, int value)
-{
-    for (auto it = a.begin(); it != a.end(); ++it) {
-        if (*it == value) {
-            return it;
-        }
-    }
-    return a.end();
-}
-
-
-void remove_even_elements(std::vector<int> &v)
-{
-    for (auto it = v.begin(); it != v.end(); )
-    {
-        if (*it % 2 == 0) {
-            it = v.erase(it);
-        } else {
-            ++it;
-        }
-    }
-}
 
 
 
@@ -56,7 +35,7 @@ int main()
     
     // print the number of elements in the vector
     cout << "myNumbers contains " << myNumbers.size() << " elements." << endl;
-   
+
     // add element to the end
     myNumbers.push_back(5);
     cout << "myNumbers after add an element contains " << myNumbers.size() << " elements." << endl;
