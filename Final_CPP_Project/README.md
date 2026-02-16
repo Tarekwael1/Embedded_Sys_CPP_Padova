@@ -1,6 +1,6 @@
 # Flexible Assembly System (FAS) Simulator
 
-A multithreaded simulation system for modeling a flexible assembly cell in an industrial plant, including order management, component handling, warehouse logistics, and AGV fleet coordination.
+A multithreaded simulation system, **which is an application of concurrency and vibe coding**, for modeling a flexible assembly cell in an industrial plant, including order management, component handling, warehouse logistics, and AGV fleet coordination.
 
 ## Project Overview
 
