@@ -1,0 +1,8 @@
+========================================
+  Key Performance Indicators Report    
+========================================
+
+Average Lead Time: 127.857 minutes
+Assembly Station Utilization: 90%
+Throughput: 1.4 orders/hour
+Average AGV Utilization: 35.7%

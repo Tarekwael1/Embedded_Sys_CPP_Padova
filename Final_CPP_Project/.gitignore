@@ -1,0 +1,38 @@
+﻿# IDE state
+.vs/
+.vscode/
+*.sln
+*.slnx
+*.sqlite
+*.ipch
+
+# Build output
+debug/
+Debug/
+release/
+Release/
+build/
+x64/
+fas_simulator.dir/
+*/Debug/
+*/Release/
+
+# CMake generated files
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+*.cmake
+
+# Visual Studio generated files
+*.vcxproj
+*.vcxproj.filters
+*.tlog/
+*.recipe
+*/.tlog/
+
+# Compiled binaries
+*.obj
+*.exe
+*.pdb
+*.log
+

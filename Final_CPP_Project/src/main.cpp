@@ -1,0 +1,116 @@
+/**
+ * Author: Tarek Abouelezz 
+ * @file main.cpp
+ * @brief Main entry point for Flexible Assembly System (FAS) Simulation
+ * @description Simulates an industrial assembly cell with AGVs, warehouse, and assembly station
+ */
+
+/*****************************Standard Libraries***************************************/
+#include <iostream>
+#include <vector>
+#include <memory>
+#include <chrono>
+#include <thread>
+/*************************************************************************************/
+
+/*****************************Project Headers*****************************************/
+#include "ControlCenter.h"
+#include "AssemblyStation.h"
+#include "Warehouse.h"
+#include "AGV.h"
+#include "FileHandler.h"
+/*************************************************************************************/
+
+/********************************Variables********************************************/
+const int NUM_AGVS = 10;  // Use 2 AGVs for debugging (set to >=10 to meet assignment requirement)
+const int NUM_ASSEMBLY_LINES = 1;
+const std::string ORDERS_FILE = "input/orders.txt";
+const std::string BOM_FILE = "input/bom.txt";
+const std::string WAREHOUSE_FILE = "input/warehouse.txt";
+const std::string LOG_FILE = "output/sim_log.txt";
+const std::string KPI_REPORT_FILE = "output/kpi_report.txt";
+
+/*************************************************************************************/
+
+/*******************************Main Function*****************************************/
+int main(int argc, char* argv[]) {
+    std::cout << "========================================\n";
+    std::cout << "  Flexible Assembly System Simulator  \n";
+    std::cout << "  (    Tarek Abouelezz    )              \n";
+    std::cout << "========================================\n\n";
+    
+    // Create output directory if it doesn't exist
+#ifdef _WIN32
+    system("if not exist output mkdir output");
+#else
+    system("mkdir -p output");
+#endif
+    
+    // Initialize core components
+    Warehouse warehouse;
+    std::vector<AGV*> agv_fleet; //To hold AGV pointers 
+    ControlCenter control_center; 
+    AssemblyStation assembly_station(&warehouse, &agv_fleet);
+    assembly_station.set_station_count(NUM_ASSEMBLY_LINES); 
+    
+    // Load input files
+    std::cout << "Loading input files...\n";
+    if (!control_center.load_orders(ORDERS_FILE)) {
+        std::cerr << "Error: Failed to load orders file: " << ORDERS_FILE << std::endl;
+        return 1;
+    }
+    std::cout << "   Loaded orders from " << ORDERS_FILE << std::endl;
+    
+    if (!control_center.load_bom(BOM_FILE)) {
+        std::cerr << "Error: Failed to load BOM file: " << BOM_FILE << std::endl;
+        return 1;
+    }
+    std::cout << "   Loaded BOM from " << BOM_FILE << std::endl;
+    
+    if (!control_center.load_warehouse(WAREHOUSE_FILE, &warehouse)) {
+        std::cerr << "Error: Failed to load warehouse file: " << WAREHOUSE_FILE << std::endl;
+        return 1;
+    }
+    std::cout << "   Loaded warehouse inventory from " << WAREHOUSE_FILE << std::endl;
+    
+    // Create AGV fleet (threads will be started by ControlCenter)
+    std::cout << "\nInitializing AGV fleet (" << NUM_AGVS << " AGVs)...\n";
+    for (int i = 1; i <= NUM_AGVS; i++) {
+        AGV* agv = new AGV(i);
+        agv_fleet.push_back(agv);
+        std::cout << "   AGV" << i << " initialized\n";
+    }
+    
+    // Set scheduling policy (default: FIFO, but using PRIORITY for better resource management)
+    control_center.set_scheduling_policy(SchedulingPolicy::PRIORITY);
+
+    // Optional: silence diagnostics for final runs
+    // control_center.set_diag_logging(false);
+    
+    // Start simulation (ControlCenter wires station and starts all threads)
+    std::cout << "\nStarting simulation...\n";
+    std::cout << "========================================\n";
+    control_center.start_simulation(&assembly_station, &agv_fleet);
+    
+    // Wait until all released orders complete instead of sleeping
+    //To reduce the simulation time
+    control_center.wait_until_all_orders_complete();
+    
+    // Stop everything via ControlCenter (it will stop station and AGVs)
+    std::cout << "\nStopping simulation...\n";
+    control_center.stop_simulation();
+    
+    // Cleanup AGV objects
+    for (auto* agv : agv_fleet) {
+        delete agv;
+    }
+    
+    std::cout << "\nSimulation complete!\n";
+    std::cout << "Check " << LOG_FILE << " for detailed logs\n";
+    std::cout << "Check " << KPI_REPORT_FILE << " for performance metrics\n";
+    std::cout << "========================================\n";
+    
+    return 0;
+}
+
+/********************************End of Main Function********************************/

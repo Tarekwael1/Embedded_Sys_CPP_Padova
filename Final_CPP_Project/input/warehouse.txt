@@ -1,0 +1,9 @@
+# Warehouse inventory file format: component_id initial_quantity
+# Lines starting with # are comments
+
+C1 100
+C2 30
+C3 20
+
+
+

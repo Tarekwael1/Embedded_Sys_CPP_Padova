@@ -1,0 +1,97 @@
+/**
+ * @file AGV.h
+ * @brief Automated Guided Vehicle (AGV) definition with state machine
+ */
+
+#ifndef AGV_H
+#define AGV_H
+
+/******************************Project Headers*****************************************/
+#include <string>
+#include <mutex>
+#include <thread>
+#include <atomic>
+#include <condition_variable>
+/*************************************************************************************/
+
+// Forward declaration to avoid circular include
+class AssemblyStation;
+
+/****************************AGV Class Definition*************************************/
+/**
+ * @enum AGVState
+ * @brief Represents the various states of an AGV
+ */
+enum class AGVState {
+    IDLE,
+    TO_WAREHOUSE,
+    PICKING,
+    TO_STATION,
+    DROPPING,
+    RETURNING
+};
+
+/**
+ * @struct AGVTask
+ * @brief Represents a task assigned to an AGV
+ */
+struct AGVTask {
+    std::string component_id;   // For finished product, holds product_id
+    int quantity;
+    std::string destination;    // "ASSEMBLY_STATION" or "WAREHOUSE"
+    bool is_complete;
+    AssemblyStation* notify_station;   // Optional callback target
+    bool is_finished_product;          // true when transporting finished product back to warehouse
+    int order_id;
+    
+    AGVTask() : quantity(0), is_complete(false), notify_station(nullptr), is_finished_product(false), order_id(-1) {}
+};
+
+/**
+ * @class AGV
+ * @brief Represents an Automated Guided Vehicle (AGV) with state machine
+ */
+class AGV {
+private:
+    int agv_id;
+    AGVState state;
+    AGVTask current_task;
+    mutable std::mutex state_mutex;
+    std::condition_variable task_cv;
+    std::atomic<bool> running;
+    std::thread agv_thread;
+    
+    // Timing parameters (in simulated minutes)
+    int travel_time_warehouse_minutes;
+    int travel_time_station_minutes;
+    int picking_time_minutes;
+    int dropping_time_minutes;
+    int return_time_minutes;
+    
+    void run();
+    void transition_to(AGVState new_state);
+    void run_segment(AGVState new_state, int minutes);
+    
+public:
+    AGV(int id);
+    ~AGV();
+    
+    void start();
+    void stop();
+    bool assign_task(const std::string& component_id, int quantity, 
+                     const std::string& destination,
+                     AssemblyStation* notify_station,
+                     bool is_finished_product = false,
+                     int order_id = -1);
+    bool is_idle() const;
+    AGVState get_state() const;
+    int get_id() const { return agv_id; }
+    AGVTask get_current_task() const;
+    
+    // Statistics
+    std::atomic<int> total_operations;
+    std::atomic<int> busy_time_minutes;
+};
+/*************************************************************************************/
+#endif /* AGV_H */
+
